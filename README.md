@@ -17,9 +17,7 @@ The default dataset is a Java extract clipped to a buffered bounding box around 
 
 ## Run the prebuilt GHCR image (no build)
 
-The workflow at `.github/workflows/publish-image.yml` builds the image and publishes it to GHCR with GitHub Actions when code is pushed to `main` or a `v*` tag. It uses the workflow's `GITHUB_TOKEN` with `packages: write`; no personal access token or local build is needed. The first run downloads the OSM extract and builds the route graph, so it can take several minutes.
-
-After the workflow succeeds, make the GHCR package public in GitHub: **Packages → osrm-motorcycle-router → Package settings → Change visibility → Public**. Then pull and run it directly on the server:
+The published image is a multi-architecture manifest for `linux/amd64` and `linux/arm64`, so `docker pull` selects the matching architecture automatically. No OSRM build or OSM extract is needed on the host.
 
 ```bash
 docker pull ghcr.io/nuralan/osrm-motorcycle-router:latest
@@ -33,7 +31,13 @@ Test the server:
 curl 'http://localhost:5000/route/v1/driving/111.882,-7.150;112.064,-6.897?overview=false&steps=true'
 ```
 
-The package is not yet published. It will become available after these commits are pushed to the intended `NurAlan/osrm-motorcycle-router` repository, the Action completes successfully, and package visibility is set to public. Anonymous pulls then need no `docker login`.
+The workflow at `.github/workflows/publish-image.yml` publishes the image with GitHub Actions on every push to `main` and every `v*` tag. Each architecture is built on a native runner (`ubuntu-24.04` for amd64, `ubuntu-24.04-arm` for arm64) and the two digests are merged into a single manifest list, so no QEMU emulation is involved.
+
+Notes:
+
+- If the package is private, run `docker login ghcr.io` with a token that has `read:packages` first. Public packages need no authentication.
+- To pin an architecture explicitly, use `--platform linux/arm64` (or `linux/amd64`) on `docker pull` and `docker run`.
+- To pin a reproducible build, pull by digest: `docker pull ghcr.io/nuralan/osrm-motorcycle-router@sha256:<digest>`. The digest is printed by the workflow's final `imagetools inspect` step.
 
 ## Quick start from source (build locally)
 

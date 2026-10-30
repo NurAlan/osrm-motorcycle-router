@@ -62,6 +62,15 @@ class DockerImageTests(unittest.TestCase):
         self.assertIn("docker/build-push-action", workflow)
         self.assertIn("OSM_PBF_URL=", workflow)
 
+    def test_github_action_publishes_amd64_and_arm64_manifest(self):
+        workflow = PUBLISH_WORKFLOW.read_text()
+        self.assertIn("linux/amd64", workflow)
+        self.assertIn("linux/arm64", workflow)
+        self.assertIn("ubuntu-24.04-arm", workflow)
+        self.assertIn("push-by-digest=true", workflow)
+        self.assertIn("docker buildx imagetools create", workflow)
+        self.assertIn("merge-multiple: true", workflow)
+
 
 
 
