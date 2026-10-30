@@ -150,3 +150,22 @@ jobs:
           set -euo pipefail
           first_tag="$(printf '%s\n' "$TAGS" | head -n1)"
           docker buildx imagetools inspect "$first_tag"
+
+      - name: Verify both architectures are in the manifest
+        env:
+          TAGS: ${{ steps.metadata.outputs.tags }}
+        run: |
+          set -euo pipefail
+          first_tag="$(printf '%s\n' "$TAGS" | head -n1)"
+          docker buildx imagetools inspect --raw "$first_tag" > /tmp/manifest.json
+          python3 - <<'PY'
+          import json
+          arches = {
+              m.get("platform", {}).get("architecture")
+              for m in json.load(open("/tmp/manifest.json")).get("manifests", [])
+          }
+          missing = {"amd64", "arm64"} - arches
+          if missing:
+              raise SystemExit(f"missing architectures: {sorted(missing)}")
+          print("manifest includes amd64 and arm64")
+          PY
