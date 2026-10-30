@@ -5,6 +5,7 @@ import unittest
 PROJECT = Path(__file__).parents[1]
 PROFILE = PROJECT / "profiles" / "motorcycle.lua"
 DOCKERFILE = PROJECT / "Dockerfile"
+PUBLISH_WORKFLOW = PROJECT / ".github" / "workflows" / "publish-image.yml"
 
 
 class MotorcycleProfileTests(unittest.TestCase):
@@ -52,6 +53,15 @@ class DockerImageTests(unittest.TestCase):
         gitignore = (PROJECT / ".gitignore").read_text()
         self.assertIn("!LICENSE.OSRM", gitignore)
         self.assertIn("LICENSE.OSRM", self.source)
+
+    def test_github_action_publishes_image_using_github_token(self):
+        workflow = PUBLISH_WORKFLOW.read_text()
+        self.assertIn("packages: write", workflow)
+        self.assertIn("secrets.GITHUB_TOKEN", workflow)
+        self.assertIn("ghcr.io/nuralan/osrm-motorcycle-router", workflow)
+        self.assertIn("docker/build-push-action", workflow)
+        self.assertIn("OSM_PBF_URL=", workflow)
+
 
 
 
