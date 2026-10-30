@@ -15,7 +15,25 @@ The default dataset is a Java extract clipped to a buffered bounding box around 
 111.25,-7.65,112.55,-6.45
 ```
 
-## Quick start
+## Run the prebuilt GHCR image (no build)
+
+Once the public package is published, pull and run it directly on the server—no local OSRM build or OSM extract is needed:
+
+```bash
+docker pull ghcr.io/nuralan/osrm-motorcycle-router:latest
+docker run -d --name osrm-motorcycle --restart unless-stopped \
+  -p 5000:5000 ghcr.io/nuralan/osrm-motorcycle-router:latest
+```
+
+Test the server:
+
+```bash
+curl 'http://localhost:5000/route/v1/driving/111.882,-7.150;112.064,-6.897?overview=false&steps=true'
+```
+
+The GHCR package has not been published yet; this `docker pull` command will work after a maintainer publishes the image and makes the package public. If the package is private, authenticate to `ghcr.io` first with a GitHub token that has `read:packages`.
+
+## Quick start from source (build locally)
 
 Requirements: Docker with BuildKit/Buildx and internet access. The first build downloads the pinned Java PBF (currently about 900 MB), verifies its `.md5` sidecar, then preprocesses the regional extract. Build time and temporary disk usage are significantly higher than runtime requirements.
 
